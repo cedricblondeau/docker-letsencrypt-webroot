@@ -1,0 +1,40 @@
+- hosts: all
+  become: true
+
+  tasks:
+  - name: Create letsencrypt user with a matching UID
+    user: name=letsencrypt state=present system=yes uid=1250
+    become: true
+
+  - name: Create letsencrypt etc directory
+    become: true
+    file: path=/etc/letsencrypt state=directory mode=700 owner=letsencrypt
+
+  - name: Copy cli.ini
+    become: true
+    copy: src=examples/cli.ini dest=/etc/letsencrypt/cli.ini mode=600 owner=letsencrypt
+
+  - name: Copy domains.conf
+    become: true
+    copy: src=examples/domains.conf dest=/etc/letsencrypt/domains.conf mode=600 owner=letsencrypt
+
+  - name: Create letsencrypt www directory
+    become: true
+    file: path=/srv/www/letsencrypt state=directory mode=755 owner=letsencrypt
+
+  - name: Create letsencrypt var/lib directory
+    become: true
+    file: path=/var/lib/letsencrypt state=directory mode=700 owner=letsencrypt
+
+  - name: Build image
+    shell: docker build -t cedricblondeau/letsencrypt-webroot /vagrant/
+
+  - name: Run container
+    docker_container:
+      name: letsencrypt-webroot-updater
+      image: cedricblondeau/letsencrypt-webroot
+      state: present
+      volumes:
+        - /etc/letsencrypt:/etc/letsencrypt
+        - /srv/www/letsencrypt:/srv/www/letsencrypt
+        - /var/lib/letsencrypt:/var/lib/letsencrypt
