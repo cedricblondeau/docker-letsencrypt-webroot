@@ -23,5 +23,6 @@ do
     --config $LE_CLI_FILE \
     --webroot-path /srv/www/letsencrypt/$HOST \
     --domain $HOST \
-    --non-interactive
+    --non-interactive \
+    --no-self-upgrade
 done
